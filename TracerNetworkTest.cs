@@ -10,9 +10,9 @@ namespace Tracing.Tests
         [SetUp]
         public void SetUp()
         {
-            Iter = 10000;
-            Chunk = 1000;
-            BufferSize = 2000;
+            Iter = 10;
+            Chunk = 2;
+            BufferSize = 2;
             ReportPeriod = .5;
         }
 
@@ -29,7 +29,6 @@ namespace Tracing.Tests
         {
             Host = "garbage";
             Execute(FinishOnDispose);
-            Thread.Sleep(TimeSpan.FromSeconds(10));
         }
     }
 }

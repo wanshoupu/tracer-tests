@@ -15,7 +15,7 @@ namespace Tracing.Tests
         protected string Token { get; set; } = "developer";
         protected long Iter { get; set; } = 10;
         protected long Chunk { get; set; } = 10;
-        protected Tracer Tracer;
+        protected ITracer _Tracer;
 
         protected static readonly Action<ITracer> NoFinishNoDispose = t => t.BuildSpan("test").StartActive(false);
 
@@ -60,7 +60,7 @@ namespace Tracing.Tests
                 .WithTags(overrideTags)
                 .WithMaxBufferedSpans(BufferSize)
                 .WithReportPeriod(TimeSpan.FromSeconds(ReportPeriod));
-            Tracer = new Tracer(options);
+            _Tracer = new Tracer(options);
         }
 
         protected List<long> Execute(Action<ITracer> buildSpan)
@@ -71,16 +71,24 @@ namespace Tracing.Tests
             {
                 for (var j = 0; j < Chunk; j++)
                 {
-                    buildSpan(Tracer);
+                    buildSpan(_Tracer);
                 }
 
                 var gcMemoryInfo = GC.GetGCMemoryInfo();
                 heapInfo.Add(gcMemoryInfo.HeapSizeBytes);
                 Console.WriteLine(gcMemoryInfo.HeapSizeBytes);
-                Tracer.Flush();
+                if (_Tracer is Tracer ls)
+                {
+                    ls.Flush();
+                }
             }
 
-            Tracer = null;
+            if (_Tracer is IDisposable dt)
+            {
+                dt.Dispose();
+            }
+
+            _Tracer = null;
             var min = Enumerable.Min(heapInfo);
             return heapInfo.Select(e => e - min).ToList();
         }
